@@ -10,10 +10,16 @@ The kit is named **jiandu** (简牍 / 簡牘), often translated as “bamboo sli
 2. Compile a cited wiki note from those sources
 3. Re-index MemPalace after any vault write
 4. Ask an assistant for help with one trusted source in the prompt, and require the answer to point back to it
+5. Inspect declared source-review scope, contributions across wiki topics, and
+   changes since review without altering the original source or inventing history
 
 # Done when
 
 Someone can clone this kit, add one source, compile one wiki note, index it, and get an answer that cites the source — without copying anyone else's vault.
+
+They can also generate a local coverage report, distinguish references from
+scoped reviews, reuse a source across related topics and see incomplete attempts
+or source-version differences. Highlight review is not full-book review.
 
 # Not this project
 

@@ -7,6 +7,9 @@ Thumbs.db
 __pycache__/
 *.pyc
 
+# Local synthesis review records may contain private paths and contributions.
+/tracking/
+
 # Diaries are often private. Keep the folder, ignore the files.
 raw/diaries/**
 !raw/diaries/.gitkeep

@@ -40,6 +40,12 @@ Lightweight pointers: title, path, tags, and the first 300 characters of Markdow
 
 Default folders: `raw/` and `wiki/`. Markdown, `.vtt`, and `.srt` are indexed. Captions become a short text excerpt with cue numbers and timestamps omitted; the original files are not modified. Diaries may be present but gitignored; do not scrape ignored diary files back into git.
 
+`tracking/` review records and generated coverage are not indexed. A tracking-only
+write does not create new pointers; do not broaden the source folders to include
+private review metadata. Private classification in `compile-wiki` does not change
+this indexer: it can still store diary excerpts from `raw/diaries/`. Review the
+source/destination privacy before indexing private material.
+
 The indexer scans all expected source directories before writing pointers. If the vault is incomplete or any source cannot be read, fix the reported problem and retry; do not force pruning after an incomplete scan. Pointers are scoped to the normalized vault path, so keep that path stable across runs. Moving the vault creates a new pointer identity.
 
 ## Do not
