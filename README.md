@@ -53,6 +53,36 @@ The two skills are in `skills/`. Ask your AI agent to install them for your harn
 | **compile-wiki** | Turn new `raw/` material into a cited `wiki/` note. Karpathy's verb. |
 | **index-vault** | After **any** vault write, update MemPalace pointers. Not only after compile. |
 
+## Synthesis coverage
+
+Jiandu can record **what captured material was reviewed, its actual scope, and
+which wiki topics it contributed to**. A source can contribute to several related
+topics and be reviewed again. A book highlight export never counts as reading the
+whole book.
+
+With Python 3.10+, from the vault root:
+
+```bash
+# Read-only inventory of raw sources and existing wiki references.
+python scripts/synthesis_tracker.py --vault . scan
+
+# Generate a local report (replace the attribution with your actual runtime/model).
+python scripts/synthesis_tracker.py --vault . --runtime "your-agent/model" scan --write
+```
+
+Open `tracking/Coverage.md`. Existing citations initially mean **referenced;
+historical review unknown**, not fully synthesized. `compile-wiki` registers a
+source and starts a scoped review before reading, then records contributions,
+no-addition, or a bounded recheck after inspecting the source/prose. Unclosed
+attempts remain pending; changed sources are flagged without erasing history.
+
+Tracking is explicit and local, with no database, watcher or external-model
+dependency. `tracking/` is Git-ignored by default and is not sent to MemPalace;
+back it up with the vault. Custom `--tracking-dir` locations need their own ignore
+rule. See [the record/CLI contract and recovery guide](docs/synthesis_tracking.md).
+These records are declared review history and structural checks, **not proof of
+reading or verified knowledge**.
+
 Supported CLI agents: **Claude Code**, **Codex**, **OpenCode**.
 
 ## MemPalace is required, and it does not auto-index
@@ -167,6 +197,22 @@ flowchart TD
 - Retrieval can miss
 - Diaries often should not be public; this repo gitignores `raw/diaries/*`. A compiled `wiki/` note or its MemPalace excerpt can still reveal private material, so review the destination before compiling or indexing private sources.
 - Do not paste private notes into a public fork
+- Tracking records do not archive old source text or coordinate independent
+  Drive replicas. A local lock cannot isolate all editor/sync writes.
+- Excluding diaries/private records from general compilation does not stop the
+  existing indexer from indexing their excerpts if they are under `raw/`.
+
+## Tests
+
+Tracking tests require only Python's standard library; the indexer tests use a
+fake MemPalace collection. From the repository root:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Tests include reproducible generated invariants for source identities, history,
+retry/order behavior and byte preservation, plus a disposable portable CLI pilot.
 
 ## Credits
 

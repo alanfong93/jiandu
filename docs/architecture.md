@@ -37,3 +37,77 @@ sequenceDiagram
     Script-->>User: Report added, updated, skipped, and pruned counts
   end
 ```
+
+## Local synthesis review journal
+
+`scripts/synthesis_tracker.py` is independent of MemPalace. It inventories
+`raw/`, resolves citations from `wiki/`, and writes only local Markdown records
+and a generated report in `tracking/` (configurable outside source/kit folders).
+It never changes source or wiki bodies. The persisted/CLI contract is
+[synthesis_tracking.md](synthesis_tracking.md); the decision is
+[ADR 0001](adr/0001-local-synthesis-review-journal.md).
+
+Source UUIDs identify captured files, independently of current path. Existing
+citations are imported as references with unknown historical review. Review
+starts/completions/failures and explicit path bindings are append-only records;
+positive contiguous sequences provide order independently of wall clocks. A
+source can have many review scopes/topic contributions. Closed reviews cannot
+be rewritten; identical retries return historical records rather than reasserting
+current validity. Hashes are not archived source versions.
+
+```mermaid
+erDiagram
+  SOURCE ||--o{ BINDING : changes_path
+  SOURCE ||--o{ REVIEW_START : reviewed_in
+  REVIEW_START ||--o| REVIEW_END : closes
+  REVIEW_END ||--o{ CONTRIBUTION : records
+  WIKI_TOPIC ||--o{ CONTRIBUTION : receives
+  SOURCE {
+    string source_id PK
+    string initial_path
+    string registered_fingerprint
+  }
+  REVIEW_START {
+    string run_id PK
+    string source_id FK
+    string fingerprint
+    string scope
+    string extent
+  }
+  REVIEW_END {
+    string run_id FK
+    string outcome
+    string actual_scope
+    string actual_extent
+  }
+```
+
+These are logical entities embedded in Markdown/JSON records, not database
+tables. Contributions describe declared use and structural citations; the agent
+must still compare each claim with its source.
+
+```mermaid
+stateDiagram-v2
+  [*] --> Pending: begin
+  Pending --> Incorporated: complete with contributions
+  Pending --> RecheckedExisting: complete with existing contributions
+  Pending --> NoAddition: complete without contributions
+  Pending --> Failed: record observed failure
+  Incorporated --> [*]
+  RecheckedExisting --> [*]
+  NoAddition --> [*]
+  Failed --> [*]
+```
+
+A missing ending stays pending/interrupted. A new review is a new ID, not a
+terminal state's reopening. Source/citation checks precede completion and final
+byte rechecks reject observable changes, but editors/sync may change files after
+that check. A short local `.lock` coordinates journal operations on one writer
+machine only. Corrupt/conflict/gapped records stop writes; backups are needed to
+recover and to detect deletion of final records. Application append-only is not
+tamper resistance or a distributed transaction.
+
+The generated report is excluded from source inventory and cannot cite sources
+into coverage merely by listing them. Tracking is ignored by Git by default and
+outside the indexer's `raw/`/`wiki/` scope, so journal metadata does not introduce
+new indexed excerpts. Existing source indexing/privacy behavior is unchanged.
